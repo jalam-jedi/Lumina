@@ -1,24 +1,5 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
-// ─────────────────────────────────────────────
-//  HYBRID AUTH SCHEMA DESIGN:
-//
-//  This schema supports TWO login methods:
-//
-//  Method A — Email/Password:
-//    passwordHash is set, googleId is null
-//
-//  Method B — Google OAuth:
-//    googleId is set, passwordHash is null
-//    (they never set a password — Google handles it)
-//
-//  Method C — Both linked (future: "link accounts"):
-//    Both googleId AND passwordHash are set
-//
-//  KEY RULE: at least one of (passwordHash, googleId) must exist.
-//  We enforce this with a pre-save validator below.
-// ─────────────────────────────────────────────
 
 const userSchema = new mongoose.Schema(
   {
@@ -38,67 +19,37 @@ const userSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
     },
-
-    // ── Email/Password Auth ──────────────────
-    // optional: Google users won't have this
-    passwordHash: {
-      type: String,
-      default: null,
-    },
-
-    // ── Google OAuth ─────────────────────────
-    // The unique ID Google assigns to a user's Google account
-    googleId: {
-      type: String,
-      default: null,
-      sparse: true, // sparse index: allows multiple null values (non-Google users)
-    },
-
-    // Tracks how the account was originally created (for UX — e.g. "Sign in with Google")
-    authProvider: {
-      type: String,
-      enum: ['local', 'google', 'both'],
-      default: 'local',
-    },
-
-    avatar: {
-      type: String,
-      default: '', // Google OAuth will fill this with the Google profile picture URL
-    },
+    passwordHash: { type: String, default: null },
+    googleId:     { type: String, default: null },
+    authProvider: { type: String, enum: ['local','google','both'], default: 'local' },
+    avatar:       { type: String, default: '' },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// ─────────────────────────────────────────────
-//  VALIDATION: user must have at least one auth method
-// ─────────────────────────────────────────────
-userSchema.pre('save', function (next) {
+// Sparse unique index  allows many null googleIds, but no two equal non-null values
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
+// Pre-save: must have at least one auth method
+// WHY async+throw instead of next(err):
+// Mongoose v7+ supports async pre hooks — throwing rejects the save promise.
+// Old callback-style next() can fail in Mongoose v9 in certain call paths.
+userSchema.pre('save', async function () {
   if (!this.passwordHash && !this.googleId) {
-    return next(new Error('User must have either a password or a Google account linked.'));
+    throw new Error('User must have a password or a Google account linked.');
   }
-  next();
 });
 
-// ─────────────────────────────────────────────
-//  INSTANCE METHOD: comparePassword
-//  Only valid for local (email/password) users
-// ─────────────────────────────────────────────
+
 userSchema.methods.comparePassword = async function (plainPassword) {
-  if (!this.passwordHash) {
-    throw new Error('This account uses Google Sign-In. No password is set.');
-  }
+  if (!this.passwordHash) throw new Error('This account uses Google Sign-In.');
   return bcrypt.compare(plainPassword, this.passwordHash);
 };
 
-// ─────────────────────────────────────────────
-//  SAFETY: strip sensitive fields before any JSON response
-// ─────────────────────────────────────────────
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
-  delete obj.passwordHash;  // never send the hash
-  delete obj.googleId;      // internal — frontend doesn't need this
+  delete obj.passwordHash;
+  delete obj.googleId;
   return obj;
 };
 
