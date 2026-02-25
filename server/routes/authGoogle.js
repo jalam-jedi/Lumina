@@ -1,34 +1,46 @@
-// ─────────────────────────────────────────────
-//  Google OAuth Route — Phase 2 Note
-//
-//  WHAT THIS WILL DO (implemented in a dedicated step):
-//
-//  Flow:
-//  1. User clicks "Sign in with Google" in the frontend
-//  2. Browser redirects to → GET /api/auth/google
-//  3. Google shows its login screen
-//  4. Google redirects back to → GET /api/auth/google/callback
-//  5. Passport finds or creates the user in MongoDB
-//  6. We sign a JWT and redirect to the frontend with it
-//
-//  PACKAGES NEEDED (not installed yet):
-//    npm install passport passport-google-oauth20
-//
-//  GOOGLE CLOUD SETUP NEEDED:
-//  1. Go to: https://console.cloud.google.com/
-//  2. Create a project → APIs & Services → Credentials
-//  3. Create "OAuth 2.0 Client ID" (Web Application)
-//  4. Add Authorized redirect URI:
-//     http://localhost:5000/api/auth/google/callback
-//  5. Copy Client ID and Client Secret to .env
-//
-//  .env variables needed:
-//    GOOGLE_CLIENT_ID=...
-//    GOOGLE_CLIENT_SECRET=...
-//    FRONTEND_URL=http://localhost:5173
-// ─────────────────────────────────────────────
+const express = require('express');
+const router = express.Router();
+const passport = require('../config/passport');
+const jwt = require('jsonwebtoken');
 
-// TODO: Implement in Phase 2b (Google OAuth step)
-// This file is a placeholder stub — routes will be added here.
+// ─────────────────────────────────────────────
+//  STEP 1:  GET /api/auth/google
+//  Frontend "Sign in with Google" button links here.
+//  Passport redirects the user to Google's login page.
+// ─────────────────────────────────────────────
+router.get(
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false, // we use JWT, not sessions
+  })
+);
 
-module.exports = {}; // placeholder
+// ─────────────────────────────────────────────
+//  STEP 2:  GET /api/auth/google/callback
+//  Google redirects the user here after they approve our app.
+//  Passport runs the verify callback (finds/creates user),
+//  then we sign a JWT and redirect to the frontend with it.
+// ─────────────────────────────────────────────
+router.get(
+  '/google/callback',
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_failed`,
+  }),
+  (req, res) => {
+    // At this point, passport has attached req.user (from the verify callback)
+    const token = jwt.sign(
+      { id: req.user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Redirect to frontend — token goes as a URL query param
+    // The React app reads it from the URL, saves to localStorage, then redirects home
+    // WHY query param? We can't set localStorage from the server side.
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  }
+);
+
+module.exports = router;
