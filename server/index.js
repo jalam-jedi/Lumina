@@ -7,7 +7,12 @@ const passport = require('./config/passport'); // loads GoogleStrategy
 const app = express();
 
 // ── Middleware ──────────────────────────────────────────
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+app.use(cors({
+  origin: [process.env.FRONTEND_URL, 'https://lumina-one-sage.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(passport.initialize()); // required for passport, even without sessions
 
