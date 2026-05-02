@@ -265,7 +265,7 @@ Each level adds visual depth through progressive lightening.
 
 ## 📄 License
 
-This project is for educational and personal use.
+This project is for educational and personal use .
 
 ---
 
