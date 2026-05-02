@@ -19,11 +19,30 @@ const logEntrySchema = new mongoose.Schema(
   { timestamps: true }  // gives each log entry its own createdAt / updatedAt
 );
 
+// ── Minimal inline snapshot of external media ─────────────────────────────
+// Stored directly on the entry so we don't need a full Media DB document
+// for every API-sourced item. Required when `media` ref is null.
+const mediaSnapshotSchema = new mongoose.Schema(
+  {
+    externalId: { type: String, required: true, trim: true },
+    source:     { type: String, required: true, trim: true }, // 'jikan'|'tmdb'|'googlebooks'
+    type:       { type: String, required: true, trim: true }, // 'anime'|'movie'|'book' etc.
+    title:      { type: String, required: true, trim: true },
+    coverImage: { type: String, default: '' },
+  },
+  { _id: false } // embedded doc, no separate _id needed
+);
+
 const libraryEntrySchema = new mongoose.Schema(
   {
     // ── Ownership ─────────────────────────────────────────────────────────────
-    user:  { type: mongoose.Schema.Types.ObjectId, ref: 'User',  required: true },
-    media: { type: mongoose.Schema.Types.ObjectId, ref: 'Media', required: true },
+    user:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    // Optional: ref to a full Media doc (used for custom/cached entries)
+    media: { type: mongoose.Schema.Types.ObjectId, ref: 'Media' },
+
+    // ── Inline snapshot (used for live API items — Jikan, TMDB, GoogleBooks) ──
+    // At least one of `media` or `mediaSnapshot` must be present (enforced in controller).
+    mediaSnapshot: { type: mediaSnapshotSchema },
 
     // ── Tracking status ───────────────────────────────────────────────────────
     // Core statuses — can be extended by just adding new strings on the frontend
@@ -48,6 +67,10 @@ const libraryEntrySchema = new mongoose.Schema(
 
     // ── Journal log ───────────────────────────────────────────────────────────
     // Ordered list of timestamped text notes — like a watch/read diary
+    // ── Short plaintext notes ──────────────────────────────────────────────
+    notes: { type: String, default: '' },
+
+    // ── Journal log ───────────────────────────────────────────────────────────
     log: { type: [logEntrySchema], default: [] },
 
     // ── Organisation ──────────────────────────────────────────────────────────
@@ -67,8 +90,17 @@ const libraryEntrySchema = new mongoose.Schema(
 );
 
 // ── Indexes ────────────────────────────────────────────────────────────────────
-// One entry per (user + media) — can't add the same item twice
-libraryEntrySchema.index({ user: 1, media: 1 }, { unique: true });
+// Prevent adding the same DB-backed Media item twice per user
+libraryEntrySchema.index(
+  { user: 1, media: 1 },
+  { unique: true, partialFilterExpression: { media: { $exists: true } } }
+);
+
+// Prevent adding the same snapshot item (same externalId+source) twice per user
+libraryEntrySchema.index(
+  { user: 1, 'mediaSnapshot.externalId': 1, 'mediaSnapshot.source': 1 },
+  { unique: true, partialFilterExpression: { 'mediaSnapshot.externalId': { $exists: true } } }
+);
 
 // Primary read pattern: "get all entries for user X, filtered by status"
 libraryEntrySchema.index({ user: 1, status: 1 });
