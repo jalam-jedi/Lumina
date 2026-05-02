@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
 </p>
 
-# ✨ Lumina — Media Discovery & Library Platform
+# ✨ Lumina — Media Discovery & Library Platform 
 
 **Lumina** is a premium, full-stack media tracking and discovery platform. Think Netflix meets MyAnimeList — a single hub to discover, track, and manage movies, TV shows, anime, manga, and books.
 
