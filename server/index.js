@@ -7,7 +7,11 @@ const passport = require('./config/passport'); // loads GoogleStrategy
 const app = express();
 
 // ── Middleware ──────────────────────────────────────────
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // Only needed if you use cookies/sessions
+}));
 app.use(express.json());
 app.use(passport.initialize()); // required for passport, even without sessions
 
