@@ -4,14 +4,30 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth }      from '../context/AuthContext'
+import { useState }     from 'react'
 import { useLibrary }   from '../hooks/useLibrary'
 import { usePageTitle } from '../context/PageTitleContext'
 
 export default function ProfilePage() {
   usePageTitle('Profile')
-  const { user, logout } = useAuth()
+  const { user, logout, updateSettings } = useAuth()
   const { entries } = useLibrary()
   const navigate = useNavigate()
+
+  const [updatingSettings, setUpdatingSettings] = useState(false)
+
+  const handleAdultToggle = async () => {
+    if (updatingSettings) return
+    setUpdatingSettings(true)
+    try {
+      const newAdultMode = !(user?.settings?.adultMode || false)
+      await updateSettings({ adultMode: newAdultMode })
+    } catch (err) {
+      console.error('Failed to update adult mode', err)
+    } finally {
+      setUpdatingSettings(false)
+    }
+  }
 
   const stats = useMemo(() => ({
     total:     entries.length,
@@ -63,6 +79,13 @@ export default function ProfilePage() {
       {/* Settings list */}
       <div className="profile-section">
         <h3 className="profile-section-title">Settings</h3>
+        <div className="profile-option" onClick={handleAdultToggle} style={{ opacity: updatingSettings ? 0.5 : 1 }}>
+          <span className="nav-icon" style={{ fontSize: '1.2rem', color: user?.settings?.adultMode ? 'var(--tertiary)' : 'var(--text-muted)' }}>18_up_rating</span>
+          <span>Include 18+ Adult Content</span>
+          <span className="nav-icon profile-chevron">
+            {user?.settings?.adultMode ? 'toggle_on' : 'toggle_off'}
+          </span>
+        </div>
         <div className="profile-option" onClick={handleClearRecent}>
           <span className="nav-icon" style={{ fontSize: '1.2rem', color: 'var(--text-muted)' }}>history</span>
           <span>Clear recent searches</span>

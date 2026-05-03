@@ -48,17 +48,18 @@ const browse = async (req, res) => {
   const ratingMin = req.query.rating_min ? parseFloat(req.query.rating_min) : null;
   const ratingMax = req.query.rating_max ? parseFloat(req.query.rating_max) : null;
   const genres    = req.query.genres ? req.query.genres.split(',').map(g => g.trim()) : [];
+  const adult     = req.query.adult === 'true';
 
-  const cacheKey = `browse:${type}:${page}:${year}:${ratingMin}:${ratingMax}:${genres.join(',')}`;
+  const cacheKey = `browse:${type}:${page}:${year}:${ratingMin}:${ratingMax}:${genres.join(',')}:${adult}`;
   const cached = browseCache.get(cacheKey);
   if (cached) return res.json(cached);
 
   try {
     let result;
     if (type === 'movie' || type === 'tvshow') {
-      result = await browseTmdb(type, page, year, ratingMin, ratingMax, genres);
+      result = await browseTmdb(type, page, year, ratingMin, ratingMax, genres, adult);
     } else if (type === 'anime') {
-      result = await browseAnilist(page, year, ratingMin, ratingMax, genres);
+      result = await browseAnilist(page, year, ratingMin, ratingMax, genres, adult);
     } else {
       return res.status(400).json({ error: 'Invalid type. Use: movie, tvshow, anime' });
     }
@@ -72,7 +73,7 @@ const browse = async (req, res) => {
 };
 
 // ── TMDB discover endpoint ──────────────────────────────────────────────────
-async function browseTmdb(type, page, year, ratingMin, ratingMax, genres) {
+async function browseTmdb(type, page, year, ratingMin, ratingMax, genres, adult) {
   const axios     = require('axios');
   const { normalizeTmdb } = require('../services/normalizer');
   const BASE_URL  = 'https://api.themoviedb.org/3';
@@ -84,6 +85,7 @@ async function browseTmdb(type, page, year, ratingMin, ratingMax, genres) {
     sort_by: 'popularity.desc',
     page,
     'vote_count.gte': 50, // filter out obscure titles
+    include_adult: adult,
   };
 
   if (year) {
@@ -114,7 +116,7 @@ async function browseTmdb(type, page, year, ratingMin, ratingMax, genres) {
 }
 
 // ── AniList browse with filters ────────────────────────────────────────────
-async function browseAnilist(page, year, ratingMin, ratingMax, genres) {
+async function browseAnilist(page, year, ratingMin, ratingMax, genres, adult) {
   const axios = require('axios');
   const ENDPOINT = 'https://graphql.anilist.co';
 
@@ -132,6 +134,16 @@ async function browseAnilist(page, year, ratingMin, ratingMax, genres) {
   const variables = { page, perPage: 25, type: 'ANIME', sort: 'TRENDING_DESC' };
   const conditions = ['$page: Int', '$perPage: Int', '$type: MediaType', '$sort: [MediaSort]'];
   const mediaArgs = ['page: $page, perPage: $perPage, type: $type, sort: $sort'];
+
+  if (adult) {
+    // If user wants adult content, omit isAdult to include it (or explicitly request it)
+    // Actually we'll omit it to MIX both.
+  } else {
+    // If not adult, explicitly hide adult content
+    variables.isAdult = false;
+    conditions.push('$isAdult: Boolean');
+    mediaArgs.push('isAdult: $isAdult');
+  }
 
   if (year) {
     variables.seasonYear = year;

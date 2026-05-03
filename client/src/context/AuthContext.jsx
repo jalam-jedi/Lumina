@@ -67,8 +67,14 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
+  const updateSettings = useCallback(async (settings) => {
+    const { user: usr } = await authService.updateSettings(settings)
+    persist(token, usr)
+    return usr
+  }, [token, persist])
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, isAuth: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, isAuth: !!user, login, register, logout, updateSettings }}>
       {children}
     </AuthContext.Provider>
   )

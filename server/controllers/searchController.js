@@ -55,6 +55,7 @@ function deduplicateResults(results) {
 const search = async (req, res) => {
   const q    = (req.query.q || '').trim();
   const type = (req.query.type || 'all').toLowerCase();
+  const adult = req.query.adult === 'true';
 
   if (!q) {
     return res.status(400).json({ error: 'Query parameter "q" is required.' });
@@ -67,13 +68,13 @@ const search = async (req, res) => {
     let results = [];
 
     if (type === 'anime') {
-      results = await anilistService.search(q, 'anime');
+      results = await anilistService.search(q, 'anime', adult);
 
     } else if (type === 'manga') {
-      results = await anilistService.search(q, 'manga');
+      results = await anilistService.search(q, 'manga', adult);
 
     } else if (type === 'movie' || type === 'tvshow') {
-      const all = await tmdbService.search(q);
+      const all = await tmdbService.search(q, adult);
       results = type === 'all' ? all : all.filter((r) => r.type === type);
 
     } else if (type === 'book') {
@@ -82,9 +83,9 @@ const search = async (req, res) => {
     } else {
       // 'all' — fan out to all APIs simultaneously
       const [animeResults, mangaResults, tmdbResults, bookResults] = await Promise.all([
-        anilistService.search(q, 'anime').catch(() => []),
-        anilistService.search(q, 'manga').catch(() => []),
-        tmdbService.search(q).catch(() => []),
+        anilistService.search(q, 'anime', adult).catch(() => []),
+        anilistService.search(q, 'manga', adult).catch(() => []),
+        tmdbService.search(q, adult).catch(() => []),
         googleBooksService.search(q).catch(() => []),
       ]);
       results = deduplicateResults([...animeResults, ...mangaResults, ...tmdbResults, ...bookResults]);

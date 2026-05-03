@@ -107,63 +107,71 @@ const normalizeAniList = (item) => {
 };
 
 // ── Search anime or manga ─────────────────────────────────────────────────────
-const search = async (q, type = 'anime') => {
+const search = async (q, type = 'anime', adult = false) => {
   const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
   const query = `
-    query ($search: String, $type: MediaType) {
+    query ($search: String, $type: MediaType, $isAdult: Boolean) {
       Page(page: 1, perPage: 12) {
-        media(search: $search, type: $type, sort: SEARCH_MATCH) {
+        media(search: $search, type: $type, sort: SEARCH_MATCH, isAdult: $isAdult) {
           ${MEDIA_FIELDS}
         }
       }
     }
   `;
-  const data = await gql(query, { search: q, type: mediaType });
+  const vars = { search: q, type: mediaType };
+  if (!adult) vars.isAdult = false;
+  const data = await gql(query, vars);
   return (data.Page?.media || []).map(normalizeAniList);
 };
 
 // ── Top / Trending anime ──────────────────────────────────────────────────────
-const getTopAnime = async () => {
+const getTopAnime = async (adult = false) => {
   const query = `
-    query {
+    query ($isAdult: Boolean) {
       Page(page: 1, perPage: 25) {
-        media(type: ANIME, sort: SCORE_DESC, status_not: NOT_YET_RELEASED) {
+        media(type: ANIME, sort: SCORE_DESC, status_not: NOT_YET_RELEASED, isAdult: $isAdult) {
           ${MEDIA_FIELDS}
         }
       }
     }
   `;
-  const data = await gql(query, {}, trendCache);
+  const vars = {};
+  if (!adult) vars.isAdult = false;
+  const data = await gql(query, vars, trendCache);
   return (data.Page?.media || []).map(normalizeAniList);
 };
 
 // ── Trending RIGHT NOW (what people are actually watching) ────────────────────
-const getTrendingAnime = async () => {
+const getTrendingAnime = async (adult = false) => {
   const query = `
-    query {
+    query ($isAdult: Boolean) {
       Page(page: 1, perPage: 25) {
-        media(type: ANIME, sort: TRENDING_DESC, status: RELEASING) {
+        media(type: ANIME, sort: TRENDING_DESC, status: RELEASING, isAdult: $isAdult) {
           ${MEDIA_FIELDS}
         }
       }
     }
   `;
-  const data = await gql(query, {}, trendCache);
+  const vars = {};
+  if (!adult) vars.isAdult = false;
+  const data = await gql(query, vars, trendCache);
   return (data.Page?.media || []).map(normalizeAniList);
 };
 
 // ── Top manga ─────────────────────────────────────────────────────────────────
-const getTopManga = async () => {
+const getTopManga = async (adult = false) => {
   const query = `
-    query {
+    query ($isAdult: Boolean) {
       Page(page: 1, perPage: 25) {
-        media(type: MANGA, sort: SCORE_DESC, status_not: NOT_YET_RELEASED) {
+        media(type: MANGA, sort: SCORE_DESC, status_not: NOT_YET_RELEASED, isAdult: $isAdult) {
           ${MEDIA_FIELDS}
         }
       }
     }
   `;
-  const data = await gql(query, {}, trendCache);
+  const vars = {};
+  if (!adult) vars.isAdult = false;
+  const data = await gql(query, vars, trendCache);
   return (data.Page?.media || []).map(normalizeAniList);
 };
 

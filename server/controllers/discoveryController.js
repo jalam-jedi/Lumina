@@ -65,13 +65,14 @@ const getPlatformTrending = async (req, res) => {
 // ─────────────────────────────────────────────
 const getExternalTrending = async (req, res) => {
   try {
-    const cacheKey = 'external_trending';
+    const adult = req.query.adult === 'true';
+    const cacheKey = `external_trending_${adult}`;
     const cached = trendCache.get(cacheKey);
     if (cached) return res.status(200).json(cached);
 
     const [tmdbTrending, topAnime] = await Promise.all([
-      tmdbService.getTrending().catch(() => []),
-      anilistService.getTopAnime().catch(() => []),   // AniList — images hotlink-safe
+      tmdbService.getTrending(adult).catch(() => []),
+      anilistService.getTopAnime(adult).catch(() => []),   // AniList — images hotlink-safe
     ]);
 
     const payload = { tmdbTrending, topAnime };

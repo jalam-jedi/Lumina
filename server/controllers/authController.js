@@ -100,4 +100,25 @@ const getMe = async (req, res) => {
   res.status(200).json({ user: req.user });
 };
 
-module.exports = { register, login, getMe };
+// ─────────────────────────────────────────────
+//  UPDATE SETTINGS  →  PUT /api/auth/settings   (protected)
+// ─────────────────────────────────────────────
+const updateSettings = async (req, res) => {
+  try {
+    const { settings } = req.body;
+    if (!settings) return res.status(400).json({ error: 'Settings object required' });
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.settings = { ...user.settings, ...settings };
+    await user.save();
+
+    res.status(200).json({ user, message: 'Settings updated successfully' });
+  } catch (error) {
+    console.error('Update settings error:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+};
+
+module.exports = { register, login, getMe, updateSettings };

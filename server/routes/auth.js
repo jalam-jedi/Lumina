@@ -1,7 +1,7 @@
 const express   = require('express');
 const router     = express.Router();
 const rateLimit  = require('express-rate-limit');
-const { register, login, getMe } = require('../controllers/authController');
+const { register, login, getMe, updateSettings } = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // ── Rate limiter for auth endpoints ────────────────────────────────────────
@@ -20,5 +20,6 @@ router.post('/login',    authLimiter, login);
 
 // Protected route — authMiddleware runs first, attaches req.user
 router.get('/me', authMiddleware, getMe);
+router.put('/settings', authMiddleware, updateSettings);
 
 module.exports = router;

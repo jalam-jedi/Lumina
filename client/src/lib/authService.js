@@ -17,4 +17,8 @@ export const authService = {
 
   /** Fetch current user from token. Returns { user } */
   getMe: () => api.get('/auth/me').then((r) => r.data),
+
+  /** Update user settings. Returns { user, message } */
+  updateSettings: (settings) =>
+    api.put('/auth/settings', { settings }).then((r) => r.data),
 }

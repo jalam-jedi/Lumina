@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema(
     googleId:     { type: String, default: null },
     authProvider: { type: String, enum: ['local','google','both'], default: 'local' },
     avatar:       { type: String, default: '' },
+    settings: {
+      adultMode: { type: Boolean, default: false }
+    }
   },
   { timestamps: true }
 );
