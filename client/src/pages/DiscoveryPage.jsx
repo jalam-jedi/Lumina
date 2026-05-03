@@ -299,6 +299,7 @@ export default function DiscoveryPage() {
       {selectedItem && (
         <MediaModal
           item={selectedItem}
+          entry={modalEntry}
           entryId={modalEntry?._id}
           onClose={handleClose}
           onAdd={handleAdd}

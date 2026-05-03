@@ -375,6 +375,8 @@ ul { list-style: none; }
   border-radius: var(--r-xl);
   z-index: 1000;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /* Fallback background if .glass is not applied or supported */
+  background: rgba(18, 20, 24, 0.85);
 }
 .nav-item {
   display: flex;
@@ -433,6 +435,16 @@ ul { list-style: none; }
   .nav-icon {
     font-size: 1.35rem;
   }
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ============================================================
@@ -1300,7 +1312,7 @@ img.poster-thumb {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
   padding: 1rem;
   animation: overlay-in 180ms var(--ease) both;
 }

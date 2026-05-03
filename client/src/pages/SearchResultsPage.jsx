@@ -300,6 +300,7 @@ export default function SearchResultsPage() {
       {selectedItem && (
         <MediaModal
           item={selectedItem}
+          entry={modalEntry}
           entryId={modalEntry?._id}
           onClose={() => setSelectedItem(null)}
           onAdd={handleAdd}

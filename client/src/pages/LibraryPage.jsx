@@ -327,6 +327,7 @@ export default function LibraryPage() {
       {activeEntry && (
         <MediaModal
           item={activeEntry}
+          entry={activeEntry}
           onClose={() => setSelectedEntry(null)}
           inLibrary={true}
           currentStatus={activeEntry.status}

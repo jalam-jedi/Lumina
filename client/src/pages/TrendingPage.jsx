@@ -251,9 +251,12 @@ export default function TrendingPage() {
       {selectedItem && (
         <MediaModal
           item={selectedItem}
+          entry={modalEntry}
+          entryId={modalEntry?._id}
           onClose={handleClose}
           onAdd={handleAdd}
           onRemove={handleRemove}
+          onUpdate={updateEntry}
           inLibrary={modalInLibrary}
           currentStatus={modalEntry?.status || 'planning'}
         />

@@ -302,6 +302,7 @@ export default function CategoryPage() {
       {selectedItem && (
         <MediaModal
           item={selectedItem}
+          entry={modalEntry}
           entryId={modalEntry?._id}
           onClose={() => setSelectedItem(null)}
           onAdd={handleAdd}

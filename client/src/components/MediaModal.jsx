@@ -39,24 +39,26 @@ function stripHtml(html) {
 }
 
 // ── Main Modal ──────────────────────────────────────────────────
-export default function MediaModal({ item, entryId, onClose, onAdd, onRemove, inLibrary, currentStatus, onUpdate }) {
+export default function MediaModal({ item, entry, entryId, onClose, onAdd, onRemove, inLibrary, currentStatus, onUpdate }) {
   const [selectedStatus, setSelectedStatus] = useState(currentStatus || 'planning')
   const [expanded,       setExpanded]       = useState(false)
   const [busy,           setBusy]           = useState(false)
   const [errorMsg,       setErrorMsg]       = useState('')
   const [addedLocally,   setAddedLocally]   = useState(false)  // tracks add within this modal session
-  const [localEntryId,   setLocalEntryId]   = useState(entryId)
+  const [localAddedEntry, setLocalAddedEntry] = useState(null)
+  const [localEntryId,   setLocalEntryId]   = useState(entryId || entry?._id)
   const overlayRef = useRef(null)
 
   const handleStatusChange = async (newStatus) => {
     setSelectedStatus(newStatus)
-    const idToUpdate = localEntryId || entryId || item._id
+    const idToUpdate = localEntryId || entryId || entry?._id || item._id
     if ((inLibrary || addedLocally) && onUpdate && idToUpdate) {
       try {
         setBusy(true)
+        setErrorMsg('')
         await onUpdate(idToUpdate, { status: newStatus })
       } catch (err) {
-        setErrorMsg('Failed to update status')
+        setErrorMsg(err?.response?.data?.error || err?.message || 'Failed to update status')
       } finally {
         setBusy(false)
       }
@@ -70,7 +72,8 @@ export default function MediaModal({ item, entryId, onClose, onAdd, onRemove, in
 
   useEffect(() => {
     if (entryId) setLocalEntryId(entryId)
-  }, [entryId])
+    if (entry?._id) setLocalEntryId(entry._id)
+  }, [entryId, entry])
 
   // Keyboard: Escape closes
   useEffect(() => {
@@ -104,6 +107,7 @@ export default function MediaModal({ item, entryId, onClose, onAdd, onRemove, in
       const addedEntry = await onAdd(item, selectedStatus)
       if (addedEntry && addedEntry._id) {
         setLocalEntryId(addedEntry._id)
+        setLocalAddedEntry(addedEntry)
       }
       setAddedLocally(true)  // show in-library state immediately
     } catch (err) {
@@ -249,9 +253,9 @@ export default function MediaModal({ item, entryId, onClose, onAdd, onRemove, in
           {/* ── Episode Tracker (Only if in library) ── */}
           {(inLibrary || addedLocally) && (
             item.type === 'tvshow' || item.mediaSnapshot?.type === 'tvshow' || item.media?.type === 'tvshow'
-              ? <div style={{ marginTop: '1.5rem' }}><SeasonTracker entry={item} onUpdate={onUpdate} /></div>
+              ? <div style={{ marginTop: '1.5rem' }}><SeasonTracker entry={localAddedEntry || entry || item} onUpdate={onUpdate} /></div>
               : ['anime', 'manga'].includes(item.type || item.mediaSnapshot?.type || item.media?.type) && (
-                  <div style={{ marginTop: '1.5rem' }}><EpisodeStepper entry={item} onUpdate={onUpdate} /></div>
+                  <div style={{ marginTop: '1.5rem' }}><EpisodeStepper entry={localAddedEntry || entry || item} onUpdate={onUpdate} /></div>
                 )
           )}
 
