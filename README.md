@@ -9,7 +9,7 @@
 
 **Lumina** is a premium, full-stack media tracking and discovery platform. Think  Netflix meets MyAnimeList — a single hub to discover, track, and manage movies, TV shows, anime, manga, and books.
 
-Built with **React 18 + Vite** on the frontend and **Node.js + Express + MongoDB** on the backend, Lumina pulls from **TMDB**, **AniList**, and **Google Books** APIs to offer a rich, unified media experience.
+Built with **React 18 + Vite** on the frontend and **Node.js + Express + MongoDB** on the backend, Lumina pulls from **TMDB**, **AniList**, and **Google Books** APIs to offer a rich, unified media experience. 
 
 ---
 
