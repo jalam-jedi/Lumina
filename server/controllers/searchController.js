@@ -3,50 +3,21 @@ const tmdbService        = require('../services/tmdbService');
 const googleBooksService = require('../services/googleBooksService');
 
 // ─────────────────────────────────────────────
-//  Dedup helper — when TMDB and AniList both return the same anime,
-//  keep the AniList version (richer metadata, hotlink-safe images).
+//  Interleave helper — ensures top results from each
+//  source appear at the top of the combined list
 // ─────────────────────────────────────────────
-function deduplicateResults(results) {
-  // Build a map of normalised titles → items, grouped by source
-  const normalize = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  const anilistByTitle = new Map();
-  const others = [];
-
-  for (const item of results) {
-    if (item.source === 'anilist') {
-      const key = normalize(item.title);
-      if (!anilistByTitle.has(key)) anilistByTitle.set(key, item);
+function interleaveResults(arrays) {
+  const result = [];
+  let maxLen = 0;
+  for (const arr of arrays) {
+    if (arr.length > maxLen) maxLen = arr.length;
+  }
+  for (let i = 0; i < maxLen; i++) {
+    for (const arr of arrays) {
+      if (arr[i]) result.push(arr[i]);
     }
   }
-
-  const seen = new Set();
-  const deduped = [];
-
-  // First pass: add all AniList items
-  for (const [key, item] of anilistByTitle) {
-    seen.add(key);
-    deduped.push(item);
-  }
-
-  // Second pass: add non-AniList items only if no AniList match
-  for (const item of results) {
-    if (item.source === 'anilist') continue; // already added
-    const key = normalize(item.title);
-    // Skip TMDB anime duplicates that match an AniList title
-    if (item.source === 'tmdb' && (item.type === 'tvshow' || item.type === 'movie')) {
-      if (seen.has(key)) continue; // AniList already has this
-    }
-    if (!seen.has(key)) {
-      seen.add(key);
-      deduped.push(item);
-    } else {
-      // Allow non-anime TMDB dupes through (different type/source combo)
-      deduped.push(item);
-    }
-  }
-
-  return deduped;
+  return result;
 }
 
 // ─────────────────────────────────────────────
@@ -84,11 +55,12 @@ const search = async (req, res) => {
       // 'all' — fan out to all APIs simultaneously
       const [animeResults, mangaResults, tmdbResults, bookResults] = await Promise.all([
         anilistService.search(q, 'anime', adult).catch(() => []),
-        anilistService.search(q, 'manga', adult).catch(() => []),
         tmdbService.search(q, adult).catch(() => []),
+        anilistService.search(q, 'manga', adult).catch(() => []),
         googleBooksService.search(q).catch(() => []),
       ]);
-      results = deduplicateResults([...animeResults, ...mangaResults, ...tmdbResults, ...bookResults]);
+      // Interleave so the #1 TMDB, #1 Anime, #1 Manga all show up at the very top
+      results = interleaveResults([tmdbResults, animeResults, mangaResults, bookResults]);
     }
 
     res.status(200).json({ results });

@@ -28,6 +28,8 @@ const search = async (q, adult = false) => {
   const data = await get('/search/multi', { query: q, include_adult: adult });
   return (data.results || [])
     .filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
+    // Filter out Japanese Anime from TMDB so we only rely on AniList for Anime
+    .filter((r) => !(r.original_language === 'ja' && r.genre_ids && r.genre_ids.includes(16)))
     .map(normalizeTmdb);
 };
 
