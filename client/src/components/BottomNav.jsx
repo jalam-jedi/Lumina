@@ -5,7 +5,6 @@ const navItems = [
   { to: '/discover', icon: 'explore',       label: 'Discover' },
   { to: '/trending', icon: 'trending_up',   label: 'Trending' },
   { to: '/library',  icon: 'video_library', label: 'Library'  },
-  { to: '/profile',  icon: 'person',         label: 'Profile'  },
 ]
 
 function BottomNav() {
