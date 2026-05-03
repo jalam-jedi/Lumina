@@ -24,7 +24,8 @@ const userSchema = new mongoose.Schema(
     authProvider: { type: String, enum: ['local','google','both'], default: 'local' },
     avatar:       { type: String, default: '' },
     settings: {
-      adultMode: { type: Boolean, default: false }
+      adultMode: { type: Boolean, default: false },
+      excludeTypes: [{ type: String, enum: ['movie', 'tvshow', 'anime', 'manga', 'book'] }]
     }
   },
   { timestamps: true }

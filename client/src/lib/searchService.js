@@ -3,14 +3,23 @@
  */
 import api from './api'
 
-const getAdultMode = () => {
+const getUserSettings = () => {
   try {
     const user = JSON.parse(localStorage.getItem('lumina_user'))
-    return user?.settings?.adultMode ? true : undefined
-  } catch { return undefined }
+    return user?.settings || {}
+  } catch { return {} }
 }
 
 export const searchService = {
-  search: (query, type = 'all') =>
-    api.get('/search', { params: { q: query, type, adult: getAdultMode() } }).then((r) => r.data),
+  search: (query, type = 'all') => {
+    const settings = getUserSettings();
+    return api.get('/search', { 
+      params: { 
+        q: query, 
+        type, 
+        adult: settings.adultMode ? true : undefined,
+        exclude: settings.excludeTypes?.length ? settings.excludeTypes.join(',') : undefined
+      } 
+    }).then((r) => r.data)
+  }
 }
