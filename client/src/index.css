@@ -416,24 +416,26 @@ ul { list-style: none; }
 }
 .nav-item.active .nav-label { color: var(--primary); }
 
-@media (max-width: 400px) {
+@media (max-width: 640px) {
   .bottom-nav {
-    bottom: 0.75rem;
-    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-    width: 94%;
+    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    width: 95%;
+    max-width: 440px;
     padding: 0.5rem 0.25rem;
+    gap: 0.25rem;
   }
   .nav-item {
-    padding: 0.4rem 0.25rem;
+    padding: 0.4rem 0.15rem;
     min-width: 0;
     flex: 1;
   }
   .nav-label {
-    font-size: 0.6rem;
-    letter-spacing: 0;
+    font-size: 0.55rem;
+    letter-spacing: -0.01em;
   }
   .nav-icon {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
   }
 }
 
@@ -855,22 +857,35 @@ ul { list-style: none; }
    ============================================================ */
 .fab {
   position: fixed;
-  bottom: 5.5rem;
-  right: calc(50% - 240px + 1rem);
-  width: 3.25rem;
-  height: 3.25rem;
+  bottom: 6rem;
+  right: 1.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 50%;
   background: var(--primary-grad);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   box-shadow: 0 8px 32px rgba(62, 101, 255, 0.35);
   cursor: pointer;
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   z-index: 95;
+}
+
+@media (min-width: 640px) {
+  .fab {
+    right: calc(50% - 360px + 1.25rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .fab {
+    right: 2rem;
+    bottom: 2rem;
+  }
 }
 .fab:hover { transform: scale(1.08); box-shadow: 0 12px 40px rgba(62, 101, 255, 0.45); }
 
@@ -1064,7 +1079,7 @@ ul { list-style: none; }
 .fab,
 .btn { will-change: transform; }
 
-.glass { transform: translateZ(0); }
+/* .glass { transform: translateZ(0); } */
 
 /* ============================================================
    RESPONSIVE — TABLET  (>= 640px)
