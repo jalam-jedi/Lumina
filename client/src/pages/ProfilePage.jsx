@@ -104,10 +104,10 @@ export default function ProfilePage() {
       {/* Settings list */}
       <div className="profile-section">
         <h3 className="profile-section-title">Settings</h3>
-        <div className="profile-option" onClick={handleAdultToggle} style={{ opacity: updatingSettings ? 0.5 : 1 }}>
+        <div className="profile-option" onClick={handleAdultToggle} style={{ opacity: updatingSettings ? 0.5 : 1, paddingRight: '1rem' }}>
           <span className="nav-icon" style={{ fontSize: '1.2rem', color: user?.settings?.adultMode ? 'var(--tertiary)' : 'var(--text-muted)' }}>18_up_rating</span>
-          <span>Include 18+ Adult Content</span>
-          <label className="toggle-switch profile-chevron" onClick={(e) => e.stopPropagation()}>
+          <span style={{ flex: 1 }}>Include 18+ Adult Content</span>
+          <label className="toggle-switch" onClick={(e) => e.stopPropagation()}>
             <input type="checkbox" checked={user?.settings?.adultMode || false} onChange={handleAdultToggle} disabled={updatingSettings} />
             <span className="toggle-slider"></span>
           </label>
