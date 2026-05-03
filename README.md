@@ -15,7 +15,7 @@ Built with **React 18 + Vite** on the frontend and **Node.js + Express + MongoDB
 
 ## 🎬 Features
 
-### Discovery & Search
+### Discovery & Search 
 - **🔥 Hot on Lumina** — Trending carousel showcasing what's popular on the platform
 - **Multi-API Discovery** — Movies, TV shows, and anime pulled from TMDB + AniList
 - **Netflix-style Search Overlay** — Full-screen search with debounced input, type filters (Movies, TV Shows, Anime, Manga, Books), and recent search history
