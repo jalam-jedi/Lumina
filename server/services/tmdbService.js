@@ -23,7 +23,7 @@ const get = async (path, params = {}, useCache = cache) => {
   return data;
 };
 
-// ── Multi-search (movies + TV shows in one call) ────────────────────────────
+// ── Multi-search (movies + TV shows in one call) ───────────────────────────
 const search = async (q, adult = false) => {
   const data = await get('/search/multi', { query: q, include_adult: adult });
   return (data.results || [])
@@ -34,7 +34,7 @@ const search = async (q, adult = false) => {
 };
 
 // ── Trending (all media, weekly) ─────────────────────────────────────────────
-const getTrending = async (adult = false) => {
+const getTrending = async ( adult = false) => {
   const data = await get('/trending/all/week', { include_adult: adult }, trendCache);
   return (data.results || [])
     .filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
